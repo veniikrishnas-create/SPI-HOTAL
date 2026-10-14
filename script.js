@@ -6,12 +6,12 @@ const PAYEE_NAME = "SPI Hotel";
 const QR_API = "https://api.qrserver.com/v1/create-qr-code/";
 
 const defaultMenuItems = [
-  {id:1,name:"இட்லி",price:10,image:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=700&h=450&fit=crop"},
-  {id:2,name:"பூரி",price:15,image:"https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=700&h=450&fit=crop"},
-  {id:3,name:"ஆப்பம்",price:20,image:"https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=700&h=450&fit=crop"},
-  {id:4,name:"வடை",price:10,image:"https://images.unsplash.com/photo-1601050690597-df0568f70950?w=700&h=450&fit=crop"},
-  {id:5,name:"தோசை",price:30,image:"https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=700&h=450&fit=crop"},
-  {id:6,name:"முட்டை",price:12,image:"https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=700&h=450&fit=crop"}
+    {id: 1, name: "இட்லி", price: 10, image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=700&h=450&fit=crop"},
+    {id: 2, name: "பூரி", price: 15, image: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=700&h=450&fit=crop"},
+    {id: 3, name: "ஆப்பம்", price: 20, image: "https://images.unsplash.com/photo-16267752252726-4a6b54c97e46?w=700&h=450&fit=crop"},
+    {id: 4, name: "வடை", price: 10, image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=700&h=450&fit=crop"},
+    {id: 5, name: "தோசை", price: 30, image: "https://images.unsplash.com/photo-1668236545962-82e5aee5976?w=700&h=450&fit=crop"},
+    {id: 6, name: "முட்டை", price: 12, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=700&h=450&fit=crop"}
 ];
 
 class RestaurantApp {
