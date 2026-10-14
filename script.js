@@ -1,28 +1,28 @@
+
 "use strict";
 
-// UPI ID unnudaiya correct ID-ah irukkanum.
+// UPI payment settings
 const UPI_ID = "paytm.s18nhhi@pty";
 const PAYEE_NAME = "SPI Hotel";
 const QR_API = "https://api.qrserver.com/v1/create-qr-code/";
 
 const defaultMenuItems = [
-    {id: 1, name: "இட்லி", price: 10, image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=700&h=450&fit=crop"},
-    {id: 2, name: "பூரி", price: 15, image: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=700&h=450&fit=crop"},
-    {id: 3, name: "ஆப்பம்", price: 20, image: "https://images.unsplash.com/photo-16267752252726-4a6b54c97e46?w=700&h=450&fit=crop"},
-    {id: 4, name: "வடை", price: 10, image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=700&h=450&fit=crop"},
-    {id: 5, name: "தோசை", price: 30, image: "https://images.unsplash.com/photo-1668236545962-82e5aee5976?w=700&h=450&fit=crop"},
-    {id: 6, name: "முட்டை", price: 12, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=700&h=450&fit=crop"}
+  { id: 1, name: "இட்லி", price: 10, image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=700&h=450&fit=crop" },
+  { id: 2, name: "பூரி", price: 15, image: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=700&h=450&fit=crop" },
+  { id: 3, name: "ஆப்பம்", price: 20, image: "https://images.unsplash.com/photo-16267752252726-4a6b54c97e46?w=700&h=450&fit=crop" },
+  { id: 4, name: "வடை", price: 10, image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=700&h=450&fit=crop" },
+  { id: 5, name: "தோசை", price: 30, image: "https://images.unsplash.com/photo-1668236545962-82e5aee5976?w=700&h=450&fit=crop" },
+  { id: 6, name: "முட்டை", price: 12, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=700&h=450&fit=crop" }
 ];
 
 class RestaurantApp {
   constructor() {
     this.menu = this.loadJSON("restaurantMenu", defaultMenuItems);
     this.cart = this.loadJSON("restaurantCart", []);
-    this.orders = this.loadJSON("restaurantOrders", []);
     this.nextItemId =
       Math.max(0, ...this.menu.map(item => Number(item.id) || 0)) + 1;
     this.toastTimer = null;
-    this.lastReport = [];
+
     this.init();
   }
 
@@ -50,7 +50,6 @@ class RestaurantApp {
     this.renderMenu();
     this.renderCart();
     this.renderManageMenu();
-    this.setCurrentMonth();
 
     document.getElementById("qr-upi-id").textContent = UPI_ID;
   }
@@ -58,17 +57,23 @@ class RestaurantApp {
   setupNavigation() {
     document.querySelectorAll(".nav-btn").forEach(button => {
       button.addEventListener("click", () => {
-        document.querySelectorAll(".nav-btn")
-          .forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".nav-btn").forEach(btn =>
+          btn.classList.remove("active")
+        );
 
-        document.querySelectorAll(".section")
-          .forEach(section => section.classList.remove("active"));
+        document.querySelectorAll(".section").forEach(section =>
+          section.classList.remove("active")
+        );
 
         button.classList.add("active");
 
-        document
-          .getElementById(`${button.dataset.section}-section`)
-          .classList.add("active");
+        const section = document.getElementById(
+          `${button.dataset.section}-section`
+        );
+
+        if (section) {
+          section.classList.add("active");
+        }
       });
     });
   }
@@ -91,12 +96,6 @@ class RestaurantApp {
     document.getElementById("menu-clear-cart-btn")
       .addEventListener("click", () => this.clearCart());
 
-    document.getElementById("generate-report-btn")
-      .addEventListener("click", () => this.generateReport());
-
-    document.getElementById("export-pdf-btn")
-      .addEventListener("click", () => this.exportReportToPDF());
-
     document.getElementById("close-qr-modal")
       .addEventListener("click", () => this.closePaymentModal());
 
@@ -116,7 +115,7 @@ class RestaurantApp {
     });
   }
 
-  // Render food menu cards.
+  // Display food menu cards.
   renderMenu() {
     const grid = document.getElementById("menu-grid");
     grid.replaceChildren();
@@ -161,7 +160,7 @@ class RestaurantApp {
     });
   }
 
-  // Add one item to the cart.
+  // Add an item to the cart.
   addToCart(item) {
     const existing = this.cart.find(
       x => Number(x.id) === Number(item.id)
@@ -182,7 +181,7 @@ class RestaurantApp {
     this.showToast(`${item.name} கூடையில் சேர்க்கப்பட்டது`);
   }
 
-  // Remove one entire item from the cart.
+  // Remove an item from the cart.
   removeFromCart(id) {
     this.cart = this.cart.filter(
       item => Number(item.id) !== Number(id)
@@ -192,7 +191,7 @@ class RestaurantApp {
     this.showToast("பொருள் நீக்கப்பட்டது");
   }
 
-  // Plus and minus buttons.
+  // Increase or decrease quantity.
   updateQuantity(id, delta) {
     const item = this.cart.find(
       x => Number(x.id) === Number(id)
@@ -216,7 +215,7 @@ class RestaurantApp {
     this.refreshCart();
   }
 
-  // Allow typing a quantity directly, such as 10 or 25.
+  // Allow the user to type a quantity.
   setQuantity(id, value) {
     const quantity = Number(value);
 
@@ -271,7 +270,7 @@ class RestaurantApp {
     };
   }
 
-  // Render cart, editable quantities and the total.
+  // Display cart, quantities and bill total.
   renderCart() {
     const container = document.getElementById("menu-cart-items");
     container.replaceChildren();
@@ -337,7 +336,9 @@ class RestaurantApp {
         subtotal.className = "menu-bill-item-subtotal";
         subtotal.textContent =
           `₹${Number(item.price).toFixed(2)} × ${item.quantity} = ` +
-          `₹${(Number(item.price) * Number(item.quantity)).toFixed(2)}`;
+          `₹${(
+            Number(item.price) * Number(item.quantity)
+          ).toFixed(2)}`;
 
         const remove = document.createElement("button");
         remove.type = "button";
@@ -370,7 +371,7 @@ class RestaurantApp {
     badge.hidden = count === 0;
   }
 
-  // Generate the QR for the current bill amount.
+  // Generate the QR code for the current bill.
   payNow() {
     if (!this.cart.length) {
       this.showToast("முதலில் உணவுப் பொருட்களை கூடையில் சேர்க்கவும்");
@@ -397,7 +398,6 @@ class RestaurantApp {
     const loading = document.getElementById("qr-loading");
     const error = document.getElementById("qr-error");
 
-    // Reset the previous QR state before loading a new one.
     image.hidden = true;
     image.removeAttribute("src");
 
@@ -417,7 +417,6 @@ class RestaurantApp {
       error.hidden = false;
     };
 
-    // The QR encodes the UPI payment link and the bill amount.
     const qrUrl = new URL(QR_API);
     qrUrl.searchParams.set("size", "300x300");
     qrUrl.searchParams.set("margin", "10");
@@ -449,6 +448,7 @@ class RestaurantApp {
     // Keep cart items until payment has actually been verified.
   }
 
+  // Print the current bill.
   printBill() {
     if (!this.cart.length) {
       this.showToast("பில் அச்சிட கூடையில் பொருட்கள் இல்லை");
@@ -459,7 +459,9 @@ class RestaurantApp {
     const popup = window.open("", "_blank", "width=700,height=800");
 
     if (!popup) {
-      this.showToast("Print window block செய்யப்பட்டுள்ளது. Pop-ups அனுமதிக்கவும்.");
+      this.showToast(
+        "Print window block செய்யப்பட்டுள்ளது. Pop-ups அனுமதிக்கவும்."
+      );
       return;
     }
 
@@ -468,7 +470,9 @@ class RestaurantApp {
         <td>${this.escapeHTML(item.name)}</td>
         <td>${item.quantity}</td>
         <td>₹${Number(item.price).toFixed(2)}</td>
-        <td>₹${(Number(item.price) * Number(item.quantity)).toFixed(2)}</td>
+        <td>₹${(
+          Number(item.price) * Number(item.quantity)
+        ).toFixed(2)}</td>
       </tr>`
     ).join("");
 
@@ -482,8 +486,16 @@ class RestaurantApp {
           body { font-family: Arial, sans-serif; padding: 28px; }
           h1 { text-align: center; color: #667eea; }
           table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-          .total { text-align: right; font-size: 20px; font-weight: bold; }
+          th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+          }
+          .total {
+            text-align: right;
+            font-size: 20px;
+            font-weight: bold;
+          }
         </style>
       </head>
       <body>
@@ -491,7 +503,12 @@ class RestaurantApp {
         <p>தேதி: ${new Date().toLocaleString()}</p>
         <table>
           <thead>
-            <tr><th>பொருள்</th><th>அளவு</th><th>விலை</th><th>தொகை</th></tr>
+            <tr>
+              <th>பொருள்</th>
+              <th>அளவு</th>
+              <th>விலை</th>
+              <th>தொகை</th>
+            </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
@@ -505,6 +522,7 @@ class RestaurantApp {
     popup.document.close();
   }
 
+  // Add a new menu item or update an existing one.
   saveMenuItem() {
     const idValue = document.getElementById("item-id").value;
     const name = document.getElementById("item-name").value.trim();
@@ -521,17 +539,16 @@ class RestaurantApp {
 
     if (idValue) {
       const id = Number(idValue);
-
       const item = this.menu.find(x => Number(x.id) === id);
 
       if (item) {
-        Object.assign(item, {name, price, image});
+        Object.assign(item, { name, price, image });
       }
 
       const cartItem = this.cart.find(x => Number(x.id) === id);
 
       if (cartItem) {
-        Object.assign(cartItem, {name, price});
+        Object.assign(cartItem, { name, price });
       }
     } else {
       this.menu.push({
@@ -593,6 +610,7 @@ class RestaurantApp {
     document.getElementById("item-id").value = "";
   }
 
+  // Display menu items in the management section.
   renderManageMenu() {
     const list = document.getElementById("menu-items-list");
     list.replaceChildren();
@@ -641,130 +659,6 @@ class RestaurantApp {
       row.append(info, actions);
       list.appendChild(row);
     });
-  }
-
-  setCurrentMonth() {
-    const now = new Date();
-
-    document.getElementById("report-month").value =
-      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  }
-
-  generateReport() {
-    const month = document.getElementById("report-month").value;
-
-    if (!month) {
-      this.showToast("மாதத்தைத் தேர்வு செய்யவும்");
-      return;
-    }
-
-    // Only orders independently marked PAID are included.
-    const paidOrders = this.orders.filter(order =>
-      order.date &&
-      order.date.slice(0, 7) === month &&
-      order.status === "PAID"
-    );
-
-    const content = document.getElementById("report-content");
-
-    if (!paidOrders.length) {
-      content.textContent =
-        "இந்த மாதத்தில் verified paid orders இல்லை. QR காட்டப்பட்ட orders தானாக paid என்று கருதப்படாது.";
-
-      document.getElementById("export-pdf-btn").hidden = true;
-      this.lastReport = [];
-      return;
-    }
-
-    const total = paidOrders.reduce(
-      (sum, order) => sum + Number(order.total || 0),
-      0
-    );
-
-    const table = document.createElement("table");
-    table.className = "report-table";
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>தேதி</th>
-          <th>பொருட்கள்</th>
-          <th>தொகை</th>
-        </tr>
-      </thead>
-    `;
-
-    const tbody = document.createElement("tbody");
-
-    paidOrders.forEach(order => {
-      const tr = document.createElement("tr");
-
-      const values = [
-        order.id,
-        new Date(order.date).toLocaleString(),
-        order.items.map(item => `${item.name} × ${item.quantity}`).join(", "),
-        `₹${Number(order.total).toFixed(2)}`
-      ];
-
-      values.forEach(value => {
-        const td = document.createElement("td");
-        td.textContent = value;
-        tr.appendChild(td);
-      });
-
-      tbody.appendChild(tr);
-    });
-
-    table.appendChild(tbody);
-    content.replaceChildren();
-
-    const summary = document.createElement("p");
-    summary.textContent =
-      `மொத்த விற்பனை: ₹${total.toFixed(2)} | ஆர்டர்கள்: ${paidOrders.length}`;
-
-    content.append(summary, table);
-
-    this.lastReport = paidOrders;
-    document.getElementById("export-pdf-btn").hidden = false;
-  }
-
-  exportReportToPDF() {
-    if (!this.lastReport.length) {
-      this.showToast("முதலில் report உருவாக்கவும்");
-      return;
-    }
-
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      this.showToast("PDF library load ஆகவில்லை. Internet connection சரிபார்க்கவும்.");
-      return;
-    }
-
-    const {jsPDF} = window.jspdf;
-    const pdf = new jsPDF();
-
-    pdf.setFont("helvetica", "bold");
-    pdf.text("SPI Hotel - Monthly Sales Report", 14, 18);
-
-    pdf.setFont("helvetica", "normal");
-
-    let y = 30;
-
-    this.lastReport.forEach((order, index) => {
-      const line =
-        `${index + 1}. ${order.id} | ` +
-        `${new Date(order.date).toLocaleDateString()} | ` +
-        `Rs. ${Number(order.total).toFixed(2)}`;
-
-      if (y > 275) {
-        pdf.addPage();
-        y = 20;
-      }
-
-      pdf.text(line, 14, y);
-      y += 9;
-    });
-
-    pdf.save("spi-hotel-monthly-report.pdf");
   }
 
   escapeHTML(value) {
