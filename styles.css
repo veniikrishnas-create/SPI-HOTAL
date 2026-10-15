@@ -1,3 +1,4 @@
+
 * {
   box-sizing: border-box;
 }
@@ -317,8 +318,7 @@ h3 {
   font-weight: 700;
 }
 
-.form-group input,
-.report-controls input {
+.form-group input {
   width: 100%;
   border: 1px solid #d5d8e3;
   border-radius: 8px;
@@ -379,52 +379,6 @@ h3 {
 .btn-delete {
   background: #ffe8e5;
   color: #bd3328;
-}
-
-.report-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.report-controls input {
-  width: auto;
-}
-
-.report-controls .btn-primary {
-  background: var(--primary);
-  color: #fff;
-}
-
-.report-controls .btn-secondary {
-  color: var(--primary);
-  border: 2px solid var(--primary);
-}
-
-.report-content {
-  padding: 18px;
-  border-radius: 12px;
-  background: #f6f7fc;
-  overflow: auto;
-}
-
-.report-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-}
-
-.report-table th,
-.report-table td {
-  padding: 10px;
-  border: 1px solid #e0e3ef;
-  text-align: left;
-}
-
-.report-table th {
-  background: #eef0ff;
 }
 
 .modal {
@@ -604,14 +558,5 @@ h3 {
 
   .manage-item {
     align-items: flex-start;
-  }
-
-  .report-controls {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .report-controls input {
-    width: 100%;
   }
 }
