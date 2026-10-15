@@ -1,28 +1,28 @@
+
 "use strict";
 
-// UPI ID unnudaiya correct ID-ah irukkanum.
+// UPI ID சரியானதா என்பதை உறுதிசெய்யவும்.
 const UPI_ID = "paytm.s18nhhi@pty";
 const PAYEE_NAME = "SPI Hotel";
 const QR_API = "https://api.qrserver.com/v1/create-qr-code/";
+const FALLBACK_IMAGE = "https://placehold.co/700x450?text=Food";
 
 const defaultMenuItems = [
-  {id:1,name:"இட்லி",price:10,image:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=700&h=450&fit=crop"},
-  {id:2,name:"பூரி",price:15,image:"https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=700&h=450&fit=crop"},
-  {id:3,name:"ஆப்பம்",price:20,image:"https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=700&h=450&fit=crop"},
-  {id:4,name:"வடை",price:10,image:"https://images.unsplash.com/photo-1601050690597-df0568f70950?w=700&h=450&fit=crop"},
-  {id:5,name:"தோசை",price:30,image:"https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=700&h=450&fit=crop"},
-  {id:6,name:"முட்டை",price:12,image:"https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=700&h=450&fit=crop"}
+  { id: 1, name: "இட்லி", price: 10, image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=700&h=450&fit=crop" },
+  { id: 2, name: "பூரி", price: 15, image: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=700&h=450&fit=crop" },
+  { id: 3, name: "ஆப்பம்", price: 20, image: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=700&h=450&fit=crop" },
+  { id: 4, name: "வடை", price: 10, image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=700&h=450&fit=crop" },
+  { id: 5, name: "தோசை", price: 30, image: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=700&h=450&fit=crop" },
+  { id: 6, name: "முட்டை", price: 12, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=700&h=450&fit=crop" }
 ];
 
 class RestaurantApp {
   constructor() {
     this.menu = this.loadJSON("restaurantMenu", defaultMenuItems);
     this.cart = this.loadJSON("restaurantCart", []);
-    this.orders = this.loadJSON("restaurantOrders", []);
     this.nextItemId =
       Math.max(0, ...this.menu.map(item => Number(item.id) || 0)) + 1;
     this.toastTimer = null;
-    this.lastReport = [];
     this.init();
   }
 
@@ -50,73 +50,80 @@ class RestaurantApp {
     this.renderMenu();
     this.renderCart();
     this.renderManageMenu();
-    this.setCurrentMonth();
 
-    document.getElementById("qr-upi-id").textContent = UPI_ID;
+    const upiElement = document.getElementById("qr-upi-id");
+    if (upiElement) {
+      upiElement.textContent = UPI_ID;
+    }
   }
 
   setupNavigation() {
     document.querySelectorAll(".nav-btn").forEach(button => {
       button.addEventListener("click", () => {
-        document.querySelectorAll(".nav-btn")
-          .forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".nav-btn").forEach(btn => {
+          btn.classList.remove("active");
+        });
 
-        document.querySelectorAll(".section")
-          .forEach(section => section.classList.remove("active"));
+        document.querySelectorAll(".section").forEach(section => {
+          section.classList.remove("active");
+        });
 
         button.classList.add("active");
 
-        document
-          .getElementById(`${button.dataset.section}-section`)
-          .classList.add("active");
+        const section = document.getElementById(
+          `${button.dataset.section}-section`
+        );
+
+        if (section) {
+          section.classList.add("active");
+        }
       });
     });
   }
 
   setupEvents() {
-    document.getElementById("menu-form").addEventListener("submit", e => {
-      e.preventDefault();
+    document.getElementById("menu-form").addEventListener("submit", event => {
+      event.preventDefault();
       this.saveMenuItem();
     });
 
-    document.getElementById("reset-form-btn")
-      .addEventListener("click", () => this.resetForm());
+    document.getElementById("reset-form-btn").addEventListener("click", () => {
+      this.resetForm();
+    });
 
-    document.getElementById("menu-pay-now-btn")
-      .addEventListener("click", () => this.payNow());
+    document.getElementById("menu-pay-now-btn").addEventListener("click", () => {
+      this.payNow();
+    });
 
-    document.getElementById("menu-print-bill-btn")
-      .addEventListener("click", () => this.printBill());
+    document.getElementById("menu-print-bill-btn").addEventListener("click", () => {
+      this.printBill();
+    });
 
-    document.getElementById("menu-clear-cart-btn")
-      .addEventListener("click", () => this.clearCart());
+    document.getElementById("menu-clear-cart-btn").addEventListener("click", () => {
+      this.clearCart();
+    });
 
-    document.getElementById("generate-report-btn")
-      .addEventListener("click", () => this.generateReport());
+    document.getElementById("close-qr-modal").addEventListener("click", () => {
+      this.closePaymentModal();
+    });
 
-    document.getElementById("export-pdf-btn")
-      .addEventListener("click", () => this.exportReportToPDF());
+    document.getElementById("close-payment-btn").addEventListener("click", () => {
+      this.closePaymentModal();
+    });
 
-    document.getElementById("close-qr-modal")
-      .addEventListener("click", () => this.closePaymentModal());
-
-    document.getElementById("close-payment-btn")
-      .addEventListener("click", () => this.closePaymentModal());
-
-    document.getElementById("qr-modal").addEventListener("click", e => {
-      if (e.target.id === "qr-modal") {
+    document.getElementById("qr-modal").addEventListener("click", event => {
+      if (event.target.id === "qr-modal") {
         this.closePaymentModal();
       }
     });
 
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape") {
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
         this.closePaymentModal();
       }
     });
   }
 
-  // Render food menu cards.
   renderMenu() {
     const grid = document.getElementById("menu-grid");
     grid.replaceChildren();
@@ -125,7 +132,6 @@ class RestaurantApp {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "menu-item";
-
       card.setAttribute(
         "aria-label",
         `${item.name}, ₹${Number(item.price).toFixed(2)}. கூடையில் சேர்க்க`
@@ -133,13 +139,13 @@ class RestaurantApp {
 
       const image = document.createElement("img");
       image.className = "menu-item-image";
-      image.src = item.image || "https://placehold.co/700x450?text=Food";
+      image.src = item.image || FALLBACK_IMAGE;
       image.alt = item.name;
       image.loading = "lazy";
 
       image.onerror = () => {
         image.onerror = null;
-        image.src = "https://placehold.co/700x450?text=Food";
+        image.src = FALLBACK_IMAGE;
       };
 
       const info = document.createElement("div");
@@ -156,15 +162,17 @@ class RestaurantApp {
       info.append(name, price);
       card.append(image, info);
 
-      card.addEventListener("click", () => this.addToCart(item));
+      card.addEventListener("click", () => {
+        this.addToCart(item);
+      });
+
       grid.appendChild(card);
     });
   }
 
-  // Add one item to the cart.
   addToCart(item) {
     const existing = this.cart.find(
-      x => Number(x.id) === Number(item.id)
+      cartItem => Number(cartItem.id) === Number(item.id)
     );
 
     if (existing) {
@@ -182,7 +190,6 @@ class RestaurantApp {
     this.showToast(`${item.name} கூடையில் சேர்க்கப்பட்டது`);
   }
 
-  // Remove one entire item from the cart.
   removeFromCart(id) {
     this.cart = this.cart.filter(
       item => Number(item.id) !== Number(id)
@@ -192,10 +199,9 @@ class RestaurantApp {
     this.showToast("பொருள் நீக்கப்பட்டது");
   }
 
-  // Plus and minus buttons.
   updateQuantity(id, delta) {
     const item = this.cart.find(
-      x => Number(x.id) === Number(id)
+      cartItem => Number(cartItem.id) === Number(id)
     );
 
     if (!item) return;
@@ -216,12 +222,11 @@ class RestaurantApp {
     this.refreshCart();
   }
 
-  // Allow typing a quantity directly, such as 10 or 25.
   setQuantity(id, value) {
     const quantity = Number(value);
 
     const item = this.cart.find(
-      x => Number(x.id) === Number(id)
+      cartItem => Number(cartItem.id) === Number(id)
     );
 
     if (!item) return;
@@ -271,7 +276,6 @@ class RestaurantApp {
     };
   }
 
-  // Render cart, editable quantities and the total.
   renderCart() {
     const container = document.getElementById("menu-cart-items");
     container.replaceChildren();
@@ -298,9 +302,9 @@ class RestaurantApp {
         minus.className = "qty-btn";
         minus.textContent = "−";
         minus.setAttribute("aria-label", `${item.name} அளவைக் குறை`);
-        minus.addEventListener("click", () =>
-          this.updateQuantity(item.id, -1)
-        );
+        minus.addEventListener("click", () => {
+          this.updateQuantity(item.id, -1);
+        });
 
         const input = document.createElement("input");
         input.type = "number";
@@ -311,13 +315,13 @@ class RestaurantApp {
         input.value = item.quantity;
         input.setAttribute("aria-label", `${item.name} அளவு`);
 
-        input.addEventListener("change", () =>
-          this.setQuantity(item.id, input.value)
-        );
+        input.addEventListener("change", () => {
+          this.setQuantity(item.id, input.value);
+        });
 
-        input.addEventListener("keydown", e => {
-          if (e.key === "Enter") {
-            e.preventDefault();
+        input.addEventListener("keydown", event => {
+          if (event.key === "Enter") {
+            event.preventDefault();
             input.blur();
           }
         });
@@ -327,9 +331,9 @@ class RestaurantApp {
         plus.className = "qty-btn";
         plus.textContent = "+";
         plus.setAttribute("aria-label", `${item.name} அளவைக் கூட்டு`);
-        plus.addEventListener("click", () =>
-          this.updateQuantity(item.id, 1)
-        );
+        plus.addEventListener("click", () => {
+          this.updateQuantity(item.id, 1);
+        });
 
         controls.append(minus, input, plus);
 
@@ -337,15 +341,17 @@ class RestaurantApp {
         subtotal.className = "menu-bill-item-subtotal";
         subtotal.textContent =
           `₹${Number(item.price).toFixed(2)} × ${item.quantity} = ` +
-          `₹${(Number(item.price) * Number(item.quantity)).toFixed(2)}`;
+          `₹${(
+            Number(item.price) * Number(item.quantity)
+          ).toFixed(2)}`;
 
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "remove-item";
         remove.textContent = "× பொருளை நீக்கு";
-        remove.addEventListener("click", () =>
-          this.removeFromCart(item.id)
-        );
+        remove.addEventListener("click", () => {
+          this.removeFromCart(item.id);
+        });
 
         row.append(name, controls, subtotal, remove);
         container.appendChild(row);
@@ -370,7 +376,6 @@ class RestaurantApp {
     badge.hidden = count === 0;
   }
 
-  // Generate the QR for the current bill amount.
   payNow() {
     if (!this.cart.length) {
       this.showToast("முதலில் உணவுப் பொருட்களை கூடையில் சேர்க்கவும்");
@@ -397,10 +402,8 @@ class RestaurantApp {
     const loading = document.getElementById("qr-loading");
     const error = document.getElementById("qr-error");
 
-    // Reset the previous QR state before loading a new one.
     image.hidden = true;
     image.removeAttribute("src");
-
     error.hidden = true;
     loading.hidden = false;
     loading.textContent = "QR குறியீடு உருவாக்கப்படுகிறது…";
@@ -417,7 +420,6 @@ class RestaurantApp {
       error.hidden = false;
     };
 
-    // The QR encodes the UPI payment link and the bill amount.
     const qrUrl = new URL(QR_API);
     qrUrl.searchParams.set("size", "300x300");
     qrUrl.searchParams.set("margin", "10");
@@ -445,8 +447,6 @@ class RestaurantApp {
 
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden", "true");
-
-    // Keep cart items until payment has actually been verified.
   }
 
   printBill() {
@@ -456,10 +456,13 @@ class RestaurantApp {
     }
 
     const bill = this.calculateTotal();
+
     const popup = window.open("", "_blank", "width=700,height=800");
 
     if (!popup) {
-      this.showToast("Print window block செய்யப்பட்டுள்ளது. Pop-ups அனுமதிக்கவும்.");
+      this.showToast(
+        "Print window block செய்யப்பட்டுள்ளது. Pop-ups அனுமதிக்கவும்."
+      );
       return;
     }
 
@@ -468,7 +471,9 @@ class RestaurantApp {
         <td>${this.escapeHTML(item.name)}</td>
         <td>${item.quantity}</td>
         <td>₹${Number(item.price).toFixed(2)}</td>
-        <td>₹${(Number(item.price) * Number(item.quantity)).toFixed(2)}</td>
+        <td>₹${(
+          Number(item.price) * Number(item.quantity)
+        ).toFixed(2)}</td>
       </tr>`
     ).join("");
 
@@ -479,25 +484,56 @@ class RestaurantApp {
         <meta charset="UTF-8">
         <title>SPI Hotel Bill</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 28px; }
-          h1 { text-align: center; color: #667eea; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-          .total { text-align: right; font-size: 20px; font-weight: bold; }
+          body {
+            font-family: Arial, sans-serif;
+            padding: 28px;
+          }
+
+          h1 {
+            text-align: center;
+            color: #667eea;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+
+          th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+          }
+
+          .total {
+            text-align: right;
+            font-size: 20px;
+            font-weight: bold;
+          }
         </style>
       </head>
       <body>
         <h1>SPI ஹோட்டல் பில்</h1>
         <p>தேதி: ${new Date().toLocaleString()}</p>
+
         <table>
           <thead>
-            <tr><th>பொருள்</th><th>அளவு</th><th>விலை</th><th>தொகை</th></tr>
+            <tr>
+              <th>பொருள்</th>
+              <th>அளவு</th>
+              <th>விலை</th>
+              <th>தொகை</th>
+            </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
+
         <p class="total">மொத்தம்: ₹${bill.total.toFixed(2)}</p>
         <p>நன்றி! மீண்டும் வருக.</p>
-        <script>window.onload = () => window.print();<\/script>
+
+        <script>
+          window.onload = () => window.print();
+        <\/script>
       </body>
       </html>
     `);
@@ -509,10 +545,8 @@ class RestaurantApp {
     const idValue = document.getElementById("item-id").value;
     const name = document.getElementById("item-name").value.trim();
     const price = Number(document.getElementById("item-price").value);
-
     const image =
-      document.getElementById("item-image").value.trim() ||
-      "https://placehold.co/700x450?text=Food";
+      document.getElementById("item-image").value.trim() || FALLBACK_IMAGE;
 
     if (!name || !Number.isFinite(price) || price <= 0) {
       this.showToast("சரியான பெயர் மற்றும் விலையை உள்ளிடவும்");
@@ -522,16 +556,20 @@ class RestaurantApp {
     if (idValue) {
       const id = Number(idValue);
 
-      const item = this.menu.find(x => Number(x.id) === id);
+      const item = this.menu.find(
+        menuItem => Number(menuItem.id) === id
+      );
 
       if (item) {
-        Object.assign(item, {name, price, image});
+        Object.assign(item, { name, price, image });
       }
 
-      const cartItem = this.cart.find(x => Number(x.id) === id);
+      const cartItem = this.cart.find(
+        cartItem => Number(cartItem.id) === id
+      );
 
       if (cartItem) {
-        Object.assign(cartItem, {name, price});
+        Object.assign(cartItem, { name, price });
       }
     } else {
       this.menu.push({
@@ -547,13 +585,12 @@ class RestaurantApp {
     this.renderMenu();
     this.renderManageMenu();
     this.resetForm();
-
     this.showToast("மெனு சேமிக்கப்பட்டது");
   }
 
   editMenuItem(id) {
     const item = this.menu.find(
-      x => Number(x.id) === Number(id)
+      menuItem => Number(menuItem.id) === Number(id)
     );
 
     if (!item) return;
@@ -573,18 +610,17 @@ class RestaurantApp {
     if (!confirm("இந்த மெனு பொருளை நீக்கவா?")) return;
 
     this.menu = this.menu.filter(
-      x => Number(x.id) !== Number(id)
+      item => Number(item.id) !== Number(id)
     );
 
     this.cart = this.cart.filter(
-      x => Number(x.id) !== Number(id)
+      item => Number(item.id) !== Number(id)
     );
 
     this.saveJSON("restaurantMenu", this.menu);
     this.refreshCart();
     this.renderMenu();
     this.renderManageMenu();
-
     this.showToast("மெனு பொருள் நீக்கப்பட்டது");
   }
 
@@ -625,146 +661,22 @@ class RestaurantApp {
       edit.type = "button";
       edit.className = "btn-edit";
       edit.textContent = "திருத்து";
-      edit.addEventListener("click", () =>
-        this.editMenuItem(item.id)
-      );
+      edit.addEventListener("click", () => {
+        this.editMenuItem(item.id);
+      });
 
       const del = document.createElement("button");
       del.type = "button";
       del.className = "btn-delete";
       del.textContent = "நீக்கு";
-      del.addEventListener("click", () =>
-        this.deleteMenuItem(item.id)
-      );
+      del.addEventListener("click", () => {
+        this.deleteMenuItem(item.id);
+      });
 
       actions.append(edit, del);
       row.append(info, actions);
       list.appendChild(row);
     });
-  }
-
-  setCurrentMonth() {
-    const now = new Date();
-
-    document.getElementById("report-month").value =
-      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  }
-
-  generateReport() {
-    const month = document.getElementById("report-month").value;
-
-    if (!month) {
-      this.showToast("மாதத்தைத் தேர்வு செய்யவும்");
-      return;
-    }
-
-    // Only orders independently marked PAID are included.
-    const paidOrders = this.orders.filter(order =>
-      order.date &&
-      order.date.slice(0, 7) === month &&
-      order.status === "PAID"
-    );
-
-    const content = document.getElementById("report-content");
-
-    if (!paidOrders.length) {
-      content.textContent =
-        "இந்த மாதத்தில் verified paid orders இல்லை. QR காட்டப்பட்ட orders தானாக paid என்று கருதப்படாது.";
-
-      document.getElementById("export-pdf-btn").hidden = true;
-      this.lastReport = [];
-      return;
-    }
-
-    const total = paidOrders.reduce(
-      (sum, order) => sum + Number(order.total || 0),
-      0
-    );
-
-    const table = document.createElement("table");
-    table.className = "report-table";
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>தேதி</th>
-          <th>பொருட்கள்</th>
-          <th>தொகை</th>
-        </tr>
-      </thead>
-    `;
-
-    const tbody = document.createElement("tbody");
-
-    paidOrders.forEach(order => {
-      const tr = document.createElement("tr");
-
-      const values = [
-        order.id,
-        new Date(order.date).toLocaleString(),
-        order.items.map(item => `${item.name} × ${item.quantity}`).join(", "),
-        `₹${Number(order.total).toFixed(2)}`
-      ];
-
-      values.forEach(value => {
-        const td = document.createElement("td");
-        td.textContent = value;
-        tr.appendChild(td);
-      });
-
-      tbody.appendChild(tr);
-    });
-
-    table.appendChild(tbody);
-    content.replaceChildren();
-
-    const summary = document.createElement("p");
-    summary.textContent =
-      `மொத்த விற்பனை: ₹${total.toFixed(2)} | ஆர்டர்கள்: ${paidOrders.length}`;
-
-    content.append(summary, table);
-
-    this.lastReport = paidOrders;
-    document.getElementById("export-pdf-btn").hidden = false;
-  }
-
-  exportReportToPDF() {
-    if (!this.lastReport.length) {
-      this.showToast("முதலில் report உருவாக்கவும்");
-      return;
-    }
-
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      this.showToast("PDF library load ஆகவில்லை. Internet connection சரிபார்க்கவும்.");
-      return;
-    }
-
-    const {jsPDF} = window.jspdf;
-    const pdf = new jsPDF();
-
-    pdf.setFont("helvetica", "bold");
-    pdf.text("SPI Hotel - Monthly Sales Report", 14, 18);
-
-    pdf.setFont("helvetica", "normal");
-
-    let y = 30;
-
-    this.lastReport.forEach((order, index) => {
-      const line =
-        `${index + 1}. ${order.id} | ` +
-        `${new Date(order.date).toLocaleDateString()} | ` +
-        `Rs. ${Number(order.total).toFixed(2)}`;
-
-      if (y > 275) {
-        pdf.addPage();
-        y = 20;
-      }
-
-      pdf.text(line, 14, y);
-      y += 9;
-    });
-
-    pdf.save("spi-hotel-monthly-report.pdf");
   }
 
   escapeHTML(value) {
@@ -779,7 +691,6 @@ class RestaurantApp {
 
   showToast(message) {
     const toast = document.getElementById("toast");
-
     toast.textContent = message;
     toast.classList.add("show");
 
